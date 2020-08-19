@@ -1,4 +1,7 @@
-//TODO: Add your imports here.
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import 'package:flutter/services.dart';
 
 const List<String> currenciesList = [
   'AUD',
@@ -31,8 +34,30 @@ const List<String> cryptoList = [
 ];
 
 const coinAPIURL = 'https://rest.coinapi.io/v1/exchangerate';
-const apiKey = 'YOUR-API-KEY-HERE';
 
 class CoinData {
-  //TODO: Create your getCoinData() method here.
+  String _apiKey;
+
+  Future<double> getExchangeRate({
+    String baseCurrency = "BTC",
+    String targetCurrency = "USD",
+  }) async {
+    if (_apiKey == null) await _loadKey();
+    http.Response response = await http.get(
+      "$coinAPIURL/$baseCurrency/$targetCurrency",
+      headers: {"X-CoinAPI-Key": _apiKey},
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)["rate"];
+    } else {
+      return null;
+    }
+  }
+
+  Future<void> _loadKey() async {
+    String data = await rootBundle.loadString("keys.json");
+    _apiKey = jsonDecode(data)["COIN_API_KEY"];
+    return;
+  }
 }
